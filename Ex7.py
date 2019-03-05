@@ -3,7 +3,7 @@ import sys
 from Mod_ImageViewer import *
 from Mod_Morphologicals import *
 
-#EX 6 -----------------------------------------------------
+#EX 7 -----------------------------------------------------
 if(len(sys.argv)>1):
     filename = sys.argv[1]
 

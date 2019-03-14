@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import math
 from Mod_ImageViewer import convertToGrayscale
 
 def getDoG(size, sigmabig, sigmasmall, angle):
@@ -32,3 +33,32 @@ def findEdgesWithThreshold(image, angle):
     (retval, result) = cv2.threshold(findEdges(image,angle),100,255,cv2.THRESH_BINARY)
     return result
 
+def findAllEdges(image, min_thres, max_thres):
+    return cv2.Canny(convertToGrayscale(image), min_thres, max_thres, None, 5, True)
+
+def showAllLines(image):
+    edges = findAllEdges(image, 50, 200)
+    result = image.copy()
+    lines = cv2.HoughLines(edges, 1, np.pi/180, 110, None, 0, 0)
+    if lines is not None:
+        for i in range(0, len(lines)):
+            rho = lines[i][0][0]
+            theta = lines[i][0][1]
+            a = math.cos(theta)
+            b = math.sin(theta)
+            x0 = a*rho
+            y0 = b*rho
+            pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
+            pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
+            cv2.line(result, pt1, pt2, (0,0,0), 2, cv2.LINE_AA)
+    return result
+
+def showAllCorners(image):
+    result = image.copy()
+    corners = cv2.goodFeaturesToTrack(convertToGrayscale(image), 100, 0.2, 8)
+    if corners is not None:
+        for point in corners:
+            x = point[0][0]
+            y = point[0][1]
+            cv2.circle(result, (x,y), 8, (0,0,255), 1)
+    return result

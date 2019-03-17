@@ -1,7 +1,7 @@
 import sys
 
 from Mod_ImageViewer import *
-from Mod_EdgeDetection import *
+from Mod_FeatureDetection import *
 
 #EX 11 -----------------------------------------------------
 if(len(sys.argv)>1):

@@ -1,7 +1,7 @@
 import cv2
 
 from Mod_ImageViewer import *
-from Mod_EdgeDetection import *
+from Mod_FeatureDetection import *
 
 #EX 10b -----------------------------------------------------
 windowname1 = 'DoG visualising window'

@@ -33,6 +33,8 @@ def findEdgesWithThreshold(image, angle):
     (retval, result) = cv2.threshold(findEdges(image,angle),100,255,cv2.THRESH_BINARY)
     return result
 
+#----------------------------------------------------------------------------------------------------------------------
+
 def findAllEdges(image, min_thres, max_thres):
     return cv2.Canny(convertToGrayscale(image), min_thres, max_thres, None, 5, True)
 
@@ -61,4 +63,34 @@ def showAllCorners(image):
             x = point[0][0]
             y = point[0][1]
             cv2.circle(result, (x,y), 8, (0,0,255), 1)
+    return result
+
+#----------------------------------------------------------------------------------------------------------------------
+
+def getORBFeatures(image, amountOfFeatures):
+    orb = cv2.ORB_create(nfeatures=amountOfFeatures)
+    keypoints, descriptors = orb.detectAndCompute(image, None)
+    return (keypoints, descriptors)
+
+def drawORBFeatures(image, amountOfFeatures):
+    keypoints, descriptors = getORBFeatures(image, amountOfFeatures)
+    result = image.copy()
+    if keypoints is not None:
+        for kp in keypoints:
+            x = int(kp.pt[0])
+            y = int(kp.pt[1])
+            cv2.circle(result, (x, y), 8, (0, 0, 255), 1)
+    return result
+
+def matchORBFeatures(descriptors1, descriptors2, amountOfMatches):
+    bf = cv2.BFMatcher_create(cv2.NORM_HAMMING, crossCheck=True)
+    matches = bf.match(descriptors1, descriptors2)
+    matches = sorted(matches, key = lambda x:x.distance)
+    return matches[:amountOfMatches]
+
+def drawORBMatches(image1, image2, amountOfFeatures, amountOfMatches):
+    kps1, des1 = getORBFeatures(image1, amountOfFeatures)
+    kps2, des2 = getORBFeatures(image2, amountOfFeatures)
+    matches = matchORBFeatures(des1, des2, amountOfMatches)
+    result = cv2.drawMatches(image1, kps1, image2, kps2, matches, None, matchColor=(0,0,255), flags=2)
     return result

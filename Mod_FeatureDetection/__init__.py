@@ -21,7 +21,7 @@ def getDoG(size, sigmabig, sigmasmall, angle):
 
 def visualiseDoG(kernel):
     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(kernel)
-    result = (kernel * (0.5)/max_val) + 0.5
+    result = ((kernel * (0.5)/max_val) + 0.5)
     return result
 
 def findEdges(image, angle):

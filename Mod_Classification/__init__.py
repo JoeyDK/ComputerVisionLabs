@@ -1,6 +1,8 @@
 import cv2
-import numpy as np
 import math
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 from Mod_ImageViewer import convertToGrayscale
 from Mod_FeatureDetection import getDoG
 
@@ -58,3 +60,69 @@ def getMeanFeatureVectorValues(image, vectorImage):
         if(negative_blocks != 0):
             meanFeatureVectorValues[1][k] /= negative_blocks
     return meanFeatureVectorValues
+
+#--------------------------------------------------------------------------------
+
+def createFeatureVectors(images):
+    amount = len(images)
+    featureVectors = np.empty(amount, dtype=object)
+    for i in range(amount):
+        featureVectors[i] = getFeatureBlocks(images[i])
+    return featureVectors
+
+def createDataSet(images, vectorImages, items):
+    if(len(images)!=len(vectorImages)):
+        return None
+    featureVectors = createFeatureVectors(images)
+    (x, y, amount) = featureVectors[0].shape[:3]
+    dataset = np.empty([2*items*len(vectorImages), amount+1], dtype=object)
+    for l in range(len(vectorImages)):
+        positives = []
+        negatives = []
+        for i in range(x):
+            for j in range(y):
+                if(vectorImages[l][j*16+8][i*16+8] == 255):
+                    positives.append([i,j])
+                else:
+                    negatives.append([i,j])
+        for p in range(items):
+            for am in range(amount):
+                (rand_x, rand_y) = positives[np.random.randint(len(positives))]
+                dataset[l*2*items+p][am] = featureVectors[l][rand_x][rand_y][am]
+            dataset[l*2*items+p][amount] = "road"
+        for n in range(items):
+            for am in range(amount):
+                (rand_x, rand_y) = negatives[np.random.randint(len(negatives))]
+                dataset[l*2*items+items+n][am] = featureVectors[l][rand_x][rand_y][am]
+            dataset[l*2*items+items+n][amount] = "non-road"
+    col = []
+    for am in range(amount):
+        col.append('index '+str(am))
+    col.append('type')
+    result = pd.DataFrame(dataset, columns=col)
+    return result
+
+def trainRDF(dataset):
+    features = dataset.columns[:12]
+    y = pd.factorize(dataset['type'])[0]
+    rdf = RandomForestClassifier(n_jobs=2, random_state=0, n_estimators=10, min_samples_leaf=5)
+    rdf.fit(dataset[features], y)
+    return rdf
+
+def createPrediction(image, rdf):
+    overlay = image.copy()
+    (h,w) = overlay.shape[:2]
+    featureblocks = getFeatureBlocks(image)
+    (x, y, amount) = featureblocks.shape[:3]
+    col = []
+    for am in range(amount):
+        col.append('index ' + str(am))
+    for i in range(x):
+        for j in range(y):
+            testset = pd.DataFrame([featureblocks[i][j]], columns=col)
+            features = testset.columns[:12]
+            prediction = rdf.predict(testset[features])
+            overlay[j*16:min((j+1)*16,h), i*16:min((i+1)*16,w)] = ((1-prediction[0])*0, (prediction[0])*255, (1-prediction[0])*255)
+            print("("+str(i)+","+str(j)+"): "+str(prediction))
+    result = cv2.addWeighted(image, 0.4, overlay, 0.1, 0)
+    return result

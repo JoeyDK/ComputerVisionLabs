@@ -28,8 +28,19 @@ if(len(sys.argv)>4):
     dataset = createDataSet(images, vectors, 20)
     predictor = trainRDF(dataset)
     #print(dataset.head())
-    resultImage = createPrediction(image1, predictor)
+    resultImage1 = createPrediction(image1, predictor)
+    resultImage2 = createPrediction(image2, predictor)
+    resultImage3 = createPrediction(image3, predictor)
+    resultImage4 = createPrediction(image4, predictor)
 
-    showImage(windowname1, resultImage)
-    writeImage("ImageResults/EX15_Result.png", resultImage)
+    showImage(windowname1, resultImage1)
+    showImage(windowname1, resultImage2)
+    showImage(windowname1, resultImage3)
+    showImage(windowname1, resultImage4)
+
+    writeImage("ImageResults/EX15_Result1.png", resultImage1)
+    writeImage("ImageResults/EX15_Result2.png", resultImage2)
+    writeImage("ImageResults/EX15_Result3.png", resultImage3)
+    writeImage("ImageResults/EX15_Result4.png", resultImage4)
+
     end()
